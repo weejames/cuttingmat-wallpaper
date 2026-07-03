@@ -1,5 +1,5 @@
 import { derivePalette } from "./colors";
-import type { MatConfig, MatPattern } from "./types";
+import type { MatConfig, MatGradient, MatPattern } from "./types";
 
 const MARGIN_RATIO = 0.035;
 const MAJOR_GRID_COLS = 10;
@@ -15,13 +15,32 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, palette: ReturnType<typeof derivePalette>) {
+function drawVignette(ctx: CanvasRenderingContext2D, w: number, h: number, strength = 0.35) {
+  const vignette = ctx.createRadialGradient(
+    w / 2,
+    h / 2,
+    Math.min(w, h) * 0.2,
+    w / 2,
+    h / 2,
+    Math.max(w, h) * 0.75,
+  );
+  vignette.addColorStop(0, "rgba(0,0,0,0)");
+  vignette.addColorStop(1, `rgba(0,0,0,${strength})`);
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function fillBaseGradient(ctx: CanvasRenderingContext2D, w: number, h: number, palette: Palette) {
   const base = ctx.createLinearGradient(0, 0, w, h);
   base.addColorStop(0, palette.shadowEdge);
   base.addColorStop(0.5, palette.base);
   base.addColorStop(1, palette.shadowEdge);
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, w, h);
+}
+
+function drawDiagonalSheen(ctx: CanvasRenderingContext2D, w: number, h: number, palette: Palette) {
+  fillBaseGradient(ctx, w, h, palette);
 
   const rand = seededRandom(42);
   ctx.save();
@@ -44,18 +63,150 @@ function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, pal
   }
   ctx.restore();
 
-  const vignette = ctx.createRadialGradient(
-    w / 2,
-    h / 2,
-    Math.min(w, h) * 0.2,
-    w / 2,
-    h / 2,
-    Math.max(w, h) * 0.75,
-  );
-  vignette.addColorStop(0, "rgba(0,0,0,0)");
-  vignette.addColorStop(1, "rgba(0,0,0,0.35)");
-  ctx.fillStyle = vignette;
+  drawVignette(ctx, w, h, 0.35);
+}
+
+function drawPlantShadow(ctx: CanvasRenderingContext2D, w: number, h: number, palette: Palette) {
+  fillBaseGradient(ctx, w, h, palette);
+
+  const rand = seededRandom(137);
+  const diag = Math.hypot(w, h);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  const clusterCount = 4 + Math.floor(rand() * 2);
+  for (let c = 0; c < clusterCount; c++) {
+    const cx = rand() * w;
+    const cy = rand() * h * 0.7;
+    const clusterRadius = diag * (0.12 + rand() * 0.1);
+    const leafCount = 5 + Math.floor(rand() * 4);
+
+    for (let i = 0; i < leafCount; i++) {
+      const angle = rand() * Math.PI * 2;
+      const dist = rand() * clusterRadius * 0.6;
+      const lx = cx + Math.cos(angle) * dist;
+      const ly = cy + Math.sin(angle) * dist * 0.6;
+      const leafW = clusterRadius * (0.35 + rand() * 0.35);
+      const leafH = leafW * (1.6 + rand() * 0.8);
+      const rot = rand() * Math.PI;
+
+      ctx.save();
+      ctx.translate(lx, ly);
+      ctx.rotate(rot);
+      const leafGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, leafH / 2);
+      leafGrad.addColorStop(0, palette.shadowEdge);
+      leafGrad.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = leafGrad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, leafW / 2, leafH / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+
+  ctx.save();
+  ctx.globalCompositeOperation = "overlay";
+  const dapple = ctx.createRadialGradient(w * 0.3, h * 0.25, 0, w * 0.3, h * 0.25, diag * 0.5);
+  dapple.addColorStop(0, palette.highlightSheen);
+  dapple.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = dapple;
   ctx.fillRect(0, 0, w, h);
+  ctx.restore();
+
+  drawVignette(ctx, w, h, 0.4);
+}
+
+function drawSoftBlend(ctx: CanvasRenderingContext2D, w: number, h: number, palette: Palette) {
+  fillBaseGradient(ctx, w, h, palette);
+
+  const rand = seededRandom(271);
+  const diag = Math.hypot(w, h);
+
+  ctx.save();
+  ctx.globalCompositeOperation = "soft-light";
+  const points: Array<[number, number, string]> = [
+    [w * 0.15, h * 0.2, palette.highlightSheen],
+    [w * 0.85, h * 0.15, palette.highlightSheen],
+    [w * 0.75, h * 0.85, palette.shadowEdge],
+    [w * 0.2, h * 0.8, palette.shadowEdge],
+  ];
+  for (const [px, py, color] of points) {
+    const radius = diag * (0.35 + rand() * 0.15);
+    const blob = ctx.createRadialGradient(px, py, 0, px, py, radius);
+    blob.addColorStop(0, color);
+    blob.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = blob;
+    ctx.fillRect(0, 0, w, h);
+  }
+  ctx.restore();
+
+  drawVignette(ctx, w, h, 0.22);
+}
+
+function drawSpotlight(ctx: CanvasRenderingContext2D, w: number, h: number, palette: Palette) {
+  ctx.fillStyle = palette.shadowEdge;
+  ctx.fillRect(0, 0, w, h);
+
+  const cx = w * 0.38;
+  const cy = h * 0.32;
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.75);
+  glow.addColorStop(0, palette.highlightSheen);
+  glow.addColorStop(0.35, palette.base);
+  glow.addColorStop(1, palette.shadowEdge);
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, w, h);
+
+  drawVignette(ctx, w, h, 0.5);
+}
+
+function drawAuroraWaves(ctx: CanvasRenderingContext2D, w: number, h: number, palette: Palette) {
+  fillBaseGradient(ctx, w, h, palette);
+
+  const rand = seededRandom(613);
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const ribbonCount = 4;
+  for (let i = 0; i < ribbonCount; i++) {
+    const baseY = h * (0.15 + (i / ribbonCount) * 0.7);
+    const amplitude = h * (0.08 + rand() * 0.06);
+    const thickness = h * (0.09 + rand() * 0.05);
+    const phase = rand() * Math.PI * 2;
+
+    ctx.strokeStyle = palette.highlightSheen;
+    ctx.lineWidth = thickness;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    ctx.beginPath();
+    const steps = 48;
+    for (let s = 0; s <= steps; s++) {
+      const x = (s / steps) * w;
+      const y = baseY + Math.sin(phase + (s / steps) * Math.PI * 2.2) * amplitude;
+      if (s === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  drawVignette(ctx, w, h, 0.4);
+}
+
+function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, palette: Palette, gradient: MatGradient) {
+  switch (gradient) {
+    case "plant-shadow":
+      return drawPlantShadow(ctx, w, h, palette);
+    case "soft-blend":
+      return drawSoftBlend(ctx, w, h, palette);
+    case "spotlight":
+      return drawSpotlight(ctx, w, h, palette);
+    case "aurora-waves":
+      return drawAuroraWaves(ctx, w, h, palette);
+    case "diagonal-sheen":
+    default:
+      return drawDiagonalSheen(ctx, w, h, palette);
+  }
 }
 
 function gridSteps(w: number, h: number) {
@@ -424,7 +575,7 @@ function drawBlurb(
 }
 
 export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
-  const { width, height, baseColor, fontStack, pattern, text } = config;
+  const { width, height, baseColor, fontStack, pattern, gradient, text } = config;
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
@@ -432,7 +583,7 @@ export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
 
   const palette = derivePalette(baseColor);
 
-  drawBackground(ctx, width, height, palette);
+  drawBackground(ctx, width, height, palette, gradient);
 
   const margin = Math.round(Math.min(width, height) * MARGIN_RATIO);
   const gridX = margin;

@@ -25,12 +25,28 @@ export const PATTERN_OPTIONS: PatternOption[] = [
   { value: "concentric", label: "Concentric circles + grid" },
 ];
 
+export type MatGradient = "diagonal-sheen" | "plant-shadow" | "soft-blend" | "spotlight" | "aurora-waves";
+
+export interface GradientOption {
+  value: MatGradient;
+  label: string;
+}
+
+export const GRADIENT_OPTIONS: GradientOption[] = [
+  { value: "diagonal-sheen", label: "Diagonal Sheen (classic metallic)" },
+  { value: "plant-shadow", label: "Plant Shadow (dappled, organic)" },
+  { value: "soft-blend", label: "Soft Blend (smooth mesh glow)" },
+  { value: "spotlight", label: "Spotlight (off-center glow)" },
+  { value: "aurora-waves", label: "Aurora Waves (flowing ribbons)" },
+];
+
 export interface MatConfig {
   width: number;
   height: number;
   baseColor: string;
   fontStack: string;
   pattern: MatPattern;
+  gradient: MatGradient;
   text: MatText;
 }
 
