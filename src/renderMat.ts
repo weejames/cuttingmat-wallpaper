@@ -1,5 +1,5 @@
 import { derivePalette } from "./colors";
-import type { MatConfig, MatGradient, MatPattern } from "./types";
+import type { CalendarConfig, MatConfig, MatGradient, MatPattern } from "./types";
 
 const MARGIN_RATIO = 0.035;
 const MAJOR_GRID_COLS = 10;
@@ -585,8 +585,116 @@ function drawBlurb(
   ctx.restore();
 }
 
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+const WEEKDAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
+
+function buildCalendarWeeks(month: number, year: number): (number | null)[][] {
+  const firstDay = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const mondayIndexedStart = (firstDay.getDay() + 6) % 7;
+
+  const cells: (number | null)[] = [];
+  for (let i = 0; i < mondayIndexedStart; i++) cells.push(null);
+  for (let day = 1; day <= daysInMonth; day++) cells.push(day);
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const weeks: (number | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) {
+    weeks.push(cells.slice(i, i + 7));
+  }
+  return weeks;
+}
+
+function drawCalendar(
+  ctx: CanvasRenderingContext2D,
+  gridX: number,
+  gridY: number,
+  gridW: number,
+  gridH: number,
+  matWidth: number,
+  palette: Palette,
+  fontStack: string,
+  calendar: CalendarConfig,
+) {
+  const weeks = buildCalendarWeeks(calendar.month, calendar.year);
+  const cellSize = matWidth * 0.026;
+  const colGap = 0;
+  const rowGap = cellSize * 0.12;
+  const headerFontSize = Math.round(matWidth * 0.0095);
+  const cellFontSize = Math.round(matWidth * 0.0088);
+  const inset = matWidth * 0.012;
+
+  const tableW = cellSize * 7;
+  const tableH = (headerFontSize * 1.6) + (cellSize + rowGap) * weeks.length;
+
+  let originX: number;
+  let originY: number;
+  switch (calendar.corner) {
+    case "top-left":
+      originX = gridX + inset;
+      originY = gridY + inset;
+      break;
+    case "top-right":
+      originX = gridX + gridW - inset - tableW;
+      originY = gridY + inset;
+      break;
+    case "bottom-left":
+      originX = gridX + inset;
+      originY = gridY + gridH - inset - tableH;
+      break;
+    case "bottom-right":
+    default:
+      originX = gridX + gridW - inset - tableW;
+      originY = gridY + gridH - inset - tableH;
+      break;
+  }
+
+  ctx.save();
+  ctx.font = `600 ${headerFontSize}px ${fontStack}`;
+  ctx.textAlign = "left";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = palette.textPrimary;
+  ctx.fillText(`${MONTH_NAMES[calendar.month]} ${calendar.year}`, originX, originY);
+
+  const weekdayY = originY + headerFontSize * 1.5;
+  ctx.font = `${cellFontSize * 0.8}px ${fontStack}`;
+  ctx.fillStyle = palette.textSecondary;
+  ctx.textAlign = "center";
+  WEEKDAY_LABELS.forEach((label, col) => {
+    const cx = originX + col * (cellSize + colGap) + cellSize / 2;
+    ctx.fillText(label, cx, weekdayY);
+  });
+
+  const gridStartY = weekdayY + cellFontSize * 1.1;
+  ctx.font = `${cellFontSize}px ${fontStack}`;
+  weeks.forEach((week, row) => {
+    const cy = gridStartY + row * (cellSize + rowGap) + cellSize / 2;
+    week.forEach((day, col) => {
+      if (day === null) return;
+      const cx = originX + col * (cellSize + colGap) + cellSize / 2;
+      ctx.fillStyle = palette.textSecondary;
+      ctx.fillText(String(day), cx, cy);
+    });
+  });
+
+  ctx.restore();
+}
+
 export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
-  const { width, height, baseColor, fontStack, pattern, gradient, text } = config;
+  const { width, height, baseColor, fontStack, pattern, gradient, text, calendar } = config;
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
@@ -615,5 +723,9 @@ export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
 
   if (text.blurb.trim()) {
     drawBlurb(ctx, gridX + gridW - width * 0.012, gridY + gridH - width * 0.012, text.blurb, width, palette, fontStack);
+  }
+
+  if (calendar.enabled) {
+    drawCalendar(ctx, gridX, gridY, gridW, gridH, width, palette, fontStack, calendar);
   }
 }

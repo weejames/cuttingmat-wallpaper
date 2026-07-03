@@ -2,18 +2,37 @@ import { useMemo, useState } from "react";
 import { MatPreview } from "./MatPreview";
 import { exportMatAsPng } from "./export";
 import { CUSTOM_GOOGLE_FONT, googleFontStack, loadGoogleFont, SYSTEM_FONTS } from "./fonts";
-import { DEFAULT_TEXT, GRADIENT_OPTIONS, PATTERN_OPTIONS, RESOLUTION_PRESETS } from "./types";
-import type { MatConfig, MatGradient, MatPattern } from "./types";
+import { CORNER_OPTIONS, DEFAULT_TEXT, GRADIENT_OPTIONS, PATTERN_OPTIONS, RESOLUTION_PRESETS } from "./types";
+import type { CalendarCorner, MatConfig, MatGradient, MatPattern } from "./types";
 
 const CUSTOM_PRESET = "custom";
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 export default function App() {
+  const now = useMemo(() => new Date(), []);
   const [presetLabel, setPresetLabel] = useState(RESOLUTION_PRESETS[0].label);
   const [customWidth, setCustomWidth] = useState(1920);
   const [customHeight, setCustomHeight] = useState(1080);
   const [pattern, setPattern] = useState<MatPattern>("classic");
   const [gradient, setGradient] = useState<MatGradient>("diagonal-sheen");
   const [baseColor, setBaseColor] = useState("#0f7a5c");
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(now.getMonth());
+  const [calendarYear, setCalendarYear] = useState(now.getFullYear());
+  const [calendarCorner, setCalendarCorner] = useState<CalendarCorner>("bottom-left");
   const [showHeadline, setShowHeadline] = useState(true);
   const [showSideLabel, setShowSideLabel] = useState(true);
   const [showBlurb, setShowBlurb] = useState(true);
@@ -49,6 +68,12 @@ export default function App() {
         sideLabel: showSideLabel ? sideLabel : "",
         blurb: showBlurb ? blurb : "",
       },
+      calendar: {
+        enabled: showCalendar,
+        month: calendarMonth,
+        year: calendarYear,
+        corner: calendarCorner,
+      },
     }),
     [
       width,
@@ -63,6 +88,10 @@ export default function App() {
       sideLabel,
       showBlurb,
       blurb,
+      showCalendar,
+      calendarMonth,
+      calendarYear,
+      calendarCorner,
     ],
   );
 
@@ -246,6 +275,50 @@ export default function App() {
               onChange={(e) => setBlurb(e.target.value)}
               placeholder="Add a short paragraph…"
             />
+          )}
+        </section>
+
+        <section>
+          <h2>Calendar</h2>
+          <label className="field-toggle">
+            <input type="checkbox" checked={showCalendar} onChange={(e) => setShowCalendar(e.target.checked)} />
+            <span>Show calendar</span>
+          </label>
+          {showCalendar && (
+            <>
+              <div className="field-row">
+                <label className="field">
+                  <span>Month</span>
+                  <select value={calendarMonth} onChange={(e) => setCalendarMonth(Number(e.target.value))}>
+                    {MONTH_NAMES.map((name, i) => (
+                      <option key={name} value={i}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field">
+                  <span>Year</span>
+                  <input
+                    type="number"
+                    min={1900}
+                    max={2999}
+                    value={calendarYear}
+                    onChange={(e) => setCalendarYear(Number(e.target.value))}
+                  />
+                </label>
+              </div>
+              <label className="field">
+                <span>Corner</span>
+                <select value={calendarCorner} onChange={(e) => setCalendarCorner(e.target.value as CalendarCorner)}>
+                  {CORNER_OPTIONS.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </>
           )}
         </section>
 

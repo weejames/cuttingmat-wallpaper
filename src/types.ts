@@ -40,6 +40,27 @@ export const GRADIENT_OPTIONS: GradientOption[] = [
   { value: "aurora-waves", label: "Aurora Waves (flowing ribbons)" },
 ];
 
+export type CalendarCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
+export interface CornerOption {
+  value: CalendarCorner;
+  label: string;
+}
+
+export const CORNER_OPTIONS: CornerOption[] = [
+  { value: "top-left", label: "Top left" },
+  { value: "top-right", label: "Top right" },
+  { value: "bottom-left", label: "Bottom left" },
+  { value: "bottom-right", label: "Bottom right" },
+];
+
+export interface CalendarConfig {
+  enabled: boolean;
+  month: number;
+  year: number;
+  corner: CalendarCorner;
+}
+
 export interface MatConfig {
   width: number;
   height: number;
@@ -48,6 +69,7 @@ export interface MatConfig {
   pattern: MatPattern;
   gradient: MatGradient;
   text: MatText;
+  calendar: CalendarConfig;
 }
 
 export const DEFAULT_TEXT: MatText = {
