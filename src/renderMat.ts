@@ -1,9 +1,11 @@
 import { derivePalette } from "./colors";
-import type { MatConfig } from "./types";
+import type { MatConfig, MatPattern } from "./types";
 
 const MARGIN_RATIO = 0.035;
 const MAJOR_GRID_COLS = 10;
 const MINOR_PER_MAJOR = 5;
+
+type Palette = ReturnType<typeof derivePalette>;
 
 function seededRandom(seed: number): () => number {
   let state = seed;
@@ -56,25 +58,25 @@ function drawBackground(ctx: CanvasRenderingContext2D, w: number, h: number, pal
   ctx.fillRect(0, 0, w, h);
 }
 
-function drawGrid(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  palette: ReturnType<typeof derivePalette>,
-) {
+function gridSteps(w: number, h: number) {
   const majorStepX = w / MAJOR_GRID_COLS;
   const rows = Math.round(h / majorStepX);
   const majorStepY = h / rows;
   const minorStepX = majorStepX / MINOR_PER_MAJOR;
   const minorStepY = majorStepY / MINOR_PER_MAJOR;
+  return { majorStepX, majorStepY, minorStepX, minorStepY };
+}
 
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x, y, w, h);
-  ctx.clip();
-
+function drawMinorLines(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  minorStepX: number,
+  minorStepY: number,
+  palette: Palette,
+) {
   ctx.strokeStyle = palette.gridMinor;
   ctx.lineWidth = Math.max(1, w * 0.0004);
   for (let gx = x; gx <= x + w + 1; gx += minorStepX) {
@@ -89,7 +91,18 @@ function drawGrid(
     ctx.lineTo(x + w, gy);
     ctx.stroke();
   }
+}
 
+function drawMajorLines(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  majorStepX: number,
+  majorStepY: number,
+  palette: Palette,
+) {
   ctx.strokeStyle = palette.gridMajor;
   ctx.lineWidth = Math.max(1.5, w * 0.0009);
   for (let gx = x; gx <= x + w + 1; gx += majorStepX) {
@@ -104,6 +117,18 @@ function drawGrid(
     ctx.lineTo(x + w, gy);
     ctx.stroke();
   }
+}
+
+function drawClassicGrid(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, palette: Palette) {
+  const { majorStepX, majorStepY, minorStepX, minorStepY } = gridSteps(w, h);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  drawMinorLines(ctx, x, y, w, h, minorStepX, minorStepY, palette);
+  drawMajorLines(ctx, x, y, w, h, majorStepX, majorStepY, palette);
 
   ctx.strokeStyle = palette.gridMajor;
   ctx.lineWidth = Math.max(1.5, w * 0.0012);
@@ -125,6 +150,152 @@ function drawGrid(
   ctx.setLineDash([]);
 
   ctx.restore();
+}
+
+function drawPlainGrid(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, palette: Palette) {
+  const { majorStepX, majorStepY, minorStepX, minorStepY } = gridSteps(w, h);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  drawMinorLines(ctx, x, y, w, h, minorStepX, minorStepY, palette);
+  drawMajorLines(ctx, x, y, w, h, majorStepX, majorStepY, palette);
+
+  ctx.restore();
+}
+
+function drawDotGrid(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, palette: Palette) {
+  const { majorStepX, majorStepY, minorStepX, minorStepY } = gridSteps(w, h);
+  const dotRadius = Math.max(1, w * 0.0016);
+  const majorDotRadius = Math.max(1.4, w * 0.0026);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  ctx.fillStyle = palette.gridMinor;
+  for (let gx = x; gx <= x + w + 1; gx += minorStepX) {
+    for (let gy = y; gy <= y + h + 1; gy += minorStepY) {
+      ctx.beginPath();
+      ctx.arc(gx, gy, dotRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.fillStyle = palette.gridMajor;
+  for (let gx = x; gx <= x + w + 1; gx += majorStepX) {
+    for (let gy = y; gy <= y + h + 1; gy += majorStepY) {
+      ctx.beginPath();
+      ctx.arc(gx, gy, majorDotRadius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.restore();
+}
+
+function drawIsometricGrid(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, palette: Palette) {
+  const step = w / MAJOR_GRID_COLS;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  ctx.strokeStyle = palette.gridMajor;
+  ctx.lineWidth = Math.max(1, w * 0.0007);
+
+  const diagStep = step;
+  const tan60 = Math.tan(Math.PI / 3);
+  const span = w + h / tan60;
+  for (let offset = -h / tan60; offset <= span; offset += diagStep) {
+    ctx.beginPath();
+    ctx.moveTo(x + offset, y + h);
+    ctx.lineTo(x + offset + h / tan60, y);
+    ctx.stroke();
+  }
+  for (let offset = -h / tan60; offset <= span; offset += diagStep) {
+    ctx.beginPath();
+    ctx.moveTo(x + offset, y);
+    ctx.lineTo(x + offset + h / tan60, y + h);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = palette.gridMinor;
+  ctx.lineWidth = Math.max(0.75, w * 0.0004);
+  for (let gy = y; gy <= y + h + 1; gy += diagStep * (tan60 / 2)) {
+    ctx.beginPath();
+    ctx.moveTo(x, gy);
+    ctx.lineTo(x + w, gy);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawConcentricGrid(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, palette: Palette) {
+  const { majorStepX, majorStepY, minorStepX, minorStepY } = gridSteps(w, h);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+
+  drawMinorLines(ctx, x, y, w, h, minorStepX, minorStepY, palette);
+  drawMajorLines(ctx, x, y, w, h, majorStepX, majorStepY, palette);
+
+  const cx = x + w / 2;
+  const cy = y + h / 2;
+  const maxRadius = Math.min(w, h) * 0.62;
+  const ringStep = maxRadius / 6;
+
+  ctx.strokeStyle = palette.gridMajor;
+  ctx.lineWidth = Math.max(1, w * 0.001);
+  for (let r = ringStep; r <= maxRadius + 1; r += ringStep) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = palette.gridDotted;
+  ctx.lineWidth = Math.max(0.75, w * 0.0003);
+  const spokeCount = 12;
+  for (let i = 0; i < spokeCount; i++) {
+    const angle = (i / spokeCount) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(angle) * maxRadius, cy + Math.sin(angle) * maxRadius);
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawPattern(
+  pattern: MatPattern,
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  palette: Palette,
+) {
+  switch (pattern) {
+    case "plain-grid":
+      return drawPlainGrid(ctx, x, y, w, h, palette);
+    case "dot-grid":
+      return drawDotGrid(ctx, x, y, w, h, palette);
+    case "isometric":
+      return drawIsometricGrid(ctx, x, y, w, h, palette);
+    case "concentric":
+      return drawConcentricGrid(ctx, x, y, w, h, palette);
+    case "classic":
+    default:
+      return drawClassicGrid(ctx, x, y, w, h, palette);
+  }
 }
 
 function drawBorder(
@@ -253,7 +424,7 @@ function drawBlurb(
 }
 
 export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
-  const { width, height, baseColor, fontStack, text } = config;
+  const { width, height, baseColor, fontStack, pattern, text } = config;
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
@@ -269,7 +440,7 @@ export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
   const gridW = width - margin * 2;
   const gridH = height - margin * 2;
 
-  drawGrid(ctx, gridX, gridY, gridW, gridH, palette);
+  drawPattern(pattern, ctx, gridX, gridY, gridW, gridH, palette);
   drawBorder(ctx, gridX, gridY, gridW, gridH, palette);
 
   if (text.sideLabel.trim()) {

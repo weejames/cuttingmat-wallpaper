@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { MatPreview } from "./MatPreview";
 import { exportMatAsPng } from "./export";
 import { CUSTOM_GOOGLE_FONT, googleFontStack, loadGoogleFont, SYSTEM_FONTS } from "./fonts";
-import { DEFAULT_TEXT, RESOLUTION_PRESETS } from "./types";
-import type { MatConfig } from "./types";
+import { DEFAULT_TEXT, PATTERN_OPTIONS, RESOLUTION_PRESETS } from "./types";
+import type { MatConfig, MatPattern } from "./types";
 
 const CUSTOM_PRESET = "custom";
 
@@ -11,6 +11,7 @@ export default function App() {
   const [presetLabel, setPresetLabel] = useState(RESOLUTION_PRESETS[0].label);
   const [customWidth, setCustomWidth] = useState(1920);
   const [customHeight, setCustomHeight] = useState(1080);
+  const [pattern, setPattern] = useState<MatPattern>("classic");
   const [baseColor, setBaseColor] = useState("#0f7a5c");
   const [showHeadline, setShowHeadline] = useState(true);
   const [showSideLabel, setShowSideLabel] = useState(true);
@@ -40,13 +41,14 @@ export default function App() {
       height,
       baseColor,
       fontStack,
+      pattern,
       text: {
         headline: showHeadline ? headline : "",
         sideLabel: showSideLabel ? sideLabel : "",
         blurb: showBlurb ? blurb : "",
       },
     }),
-    [width, height, baseColor, fontStack, showHeadline, headline, showSideLabel, sideLabel, showBlurb, blurb],
+    [width, height, baseColor, fontStack, pattern, showHeadline, headline, showSideLabel, sideLabel, showBlurb, blurb],
   );
 
   const handleLoadGoogleFont = async () => {
@@ -111,6 +113,20 @@ export default function App() {
               </label>
             </div>
           )}
+        </section>
+
+        <section>
+          <h2>Pattern</h2>
+          <label className="field">
+            <span>Mat style</span>
+            <select value={pattern} onChange={(e) => setPattern(e.target.value as MatPattern)}>
+              {PATTERN_OPTIONS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </section>
 
         <section>

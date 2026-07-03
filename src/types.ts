@@ -10,11 +10,27 @@ export interface MatText {
   blurb: string;
 }
 
+export type MatPattern = "classic" | "plain-grid" | "dot-grid" | "isometric" | "concentric";
+
+export interface PatternOption {
+  value: MatPattern;
+  label: string;
+}
+
+export const PATTERN_OPTIONS: PatternOption[] = [
+  { value: "classic", label: "Classic (grid + diagonal)" },
+  { value: "plain-grid", label: "Plain square grid" },
+  { value: "dot-grid", label: "Dot grid" },
+  { value: "isometric", label: "Isometric / triangular grid" },
+  { value: "concentric", label: "Concentric circles + grid" },
+];
+
 export interface MatConfig {
   width: number;
   height: number;
   baseColor: string;
   fontStack: string;
+  pattern: MatPattern;
   text: MatText;
 }
 
