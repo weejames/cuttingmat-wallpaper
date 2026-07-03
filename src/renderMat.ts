@@ -72,41 +72,52 @@ function drawPlantShadow(ctx: CanvasRenderingContext2D, w: number, h: number, pa
   const rand = seededRandom(137);
   const diag = Math.hypot(w, h);
 
-  ctx.save();
-  ctx.globalCompositeOperation = "multiply";
-  const clusterCount = 4 + Math.floor(rand() * 2);
-  for (let c = 0; c < clusterCount; c++) {
-    const cx = rand() * w;
-    const cy = rand() * h * 0.7;
-    const clusterRadius = diag * (0.12 + rand() * 0.1);
-    const leafCount = 5 + Math.floor(rand() * 4);
+  const shadowLayer = document.createElement("canvas");
+  shadowLayer.width = w;
+  shadowLayer.height = h;
+  const sctx = shadowLayer.getContext("2d");
+  if (sctx) {
+    sctx.filter = `blur(${diag * 0.02}px)`;
+    const clusterCount = 3 + Math.floor(rand() * 2);
+    for (let c = 0; c < clusterCount; c++) {
+      const cx = rand() * w;
+      const cy = rand() * h * 0.75;
+      const clusterRadius = diag * (0.11 + rand() * 0.08);
+      const leafCount = 4 + Math.floor(rand() * 3);
 
-    for (let i = 0; i < leafCount; i++) {
-      const angle = rand() * Math.PI * 2;
-      const dist = rand() * clusterRadius * 0.6;
-      const lx = cx + Math.cos(angle) * dist;
-      const ly = cy + Math.sin(angle) * dist * 0.6;
-      const leafW = clusterRadius * (0.35 + rand() * 0.35);
-      const leafH = leafW * (1.6 + rand() * 0.8);
-      const rot = rand() * Math.PI;
+      for (let i = 0; i < leafCount; i++) {
+        const angle = rand() * Math.PI * 2;
+        const dist = rand() * clusterRadius * 0.7;
+        const lx = cx + Math.cos(angle) * dist;
+        const ly = cy + Math.sin(angle) * dist * 0.6;
+        const leafW = clusterRadius * (0.45 + rand() * 0.4);
+        const leafH = leafW * (1.5 + rand() * 0.7);
+        const rot = rand() * Math.PI;
 
-      ctx.save();
-      ctx.translate(lx, ly);
-      ctx.rotate(rot);
-      const leafGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, leafH / 2);
-      leafGrad.addColorStop(0, palette.shadowEdge);
-      leafGrad.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = leafGrad;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, leafW / 2, leafH / 2, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
+        sctx.save();
+        sctx.translate(lx, ly);
+        sctx.rotate(rot);
+        const leafGrad = sctx.createRadialGradient(0, 0, 0, 0, 0, leafH / 2);
+        leafGrad.addColorStop(0, "rgba(0,0,0,0.5)");
+        leafGrad.addColorStop(1, "rgba(0,0,0,0)");
+        sctx.fillStyle = leafGrad;
+        sctx.beginPath();
+        sctx.ellipse(0, 0, leafW / 2, leafH / 2, 0, 0, Math.PI * 2);
+        sctx.fill();
+        sctx.restore();
+      }
     }
   }
+
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  ctx.globalAlpha = 0.22;
+  ctx.drawImage(shadowLayer, 0, 0);
   ctx.restore();
 
   ctx.save();
   ctx.globalCompositeOperation = "overlay";
+  ctx.globalAlpha = 0.25;
   const dapple = ctx.createRadialGradient(w * 0.3, h * 0.25, 0, w * 0.3, h * 0.25, diag * 0.5);
   dapple.addColorStop(0, palette.highlightSheen);
   dapple.addColorStop(1, "rgba(255,255,255,0)");
@@ -114,7 +125,7 @@ function drawPlantShadow(ctx: CanvasRenderingContext2D, w: number, h: number, pa
   ctx.fillRect(0, 0, w, h);
   ctx.restore();
 
-  drawVignette(ctx, w, h, 0.4);
+  drawVignette(ctx, w, h, 0.28);
 }
 
 function drawSoftBlend(ctx: CanvasRenderingContext2D, w: number, h: number, palette: Palette) {
