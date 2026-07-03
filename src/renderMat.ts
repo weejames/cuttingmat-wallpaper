@@ -161,10 +161,11 @@ function drawHeadline(
   text: string,
   matWidth: number,
   palette: ReturnType<typeof derivePalette>,
+  fontStack: string,
 ) {
   const fontSize = Math.round(matWidth * 0.028);
   ctx.save();
-  ctx.font = `${fontSize}px Georgia, "Times New Roman", serif`;
+  ctx.font = `${fontSize}px ${fontStack}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
@@ -192,12 +193,13 @@ function drawSideLabel(
   text: string,
   matWidth: number,
   palette: ReturnType<typeof derivePalette>,
+  fontStack: string,
 ) {
   const fontSize = Math.round(matWidth * 0.0075);
   ctx.save();
   ctx.translate(x, y + h);
   ctx.rotate(-Math.PI / 2);
-  ctx.font = `${fontSize}px Arial, Helvetica, sans-serif`;
+  ctx.font = `${fontSize}px ${fontStack}`;
   ctx.textAlign = "left";
   ctx.textBaseline = "bottom";
   ctx.fillStyle = palette.textSecondary;
@@ -230,13 +232,14 @@ function drawBlurb(
   text: string,
   matWidth: number,
   palette: ReturnType<typeof derivePalette>,
+  fontStack: string,
 ) {
   const fontSize = Math.round(matWidth * 0.0072);
   const lineHeight = fontSize * 1.5;
   const maxWidth = matWidth * 0.24;
 
   ctx.save();
-  ctx.font = `${fontSize}px Arial, Helvetica, sans-serif`;
+  ctx.font = `${fontSize}px ${fontStack}`;
   ctx.textAlign = "right";
   ctx.textBaseline = "alphabetic";
   ctx.fillStyle = palette.textSecondary;
@@ -250,7 +253,7 @@ function drawBlurb(
 }
 
 export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
-  const { width, height, baseColor, text } = config;
+  const { width, height, baseColor, fontStack, text } = config;
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
@@ -270,14 +273,14 @@ export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
   drawBorder(ctx, gridX, gridY, gridW, gridH, palette);
 
   if (text.sideLabel.trim()) {
-    drawSideLabel(ctx, gridX, gridY, gridH, text.sideLabel, width, palette);
+    drawSideLabel(ctx, gridX, gridY, gridH, text.sideLabel, width, palette, fontStack);
   }
 
   if (text.headline.trim()) {
-    drawHeadline(ctx, width / 2, height / 2, text.headline, width, palette);
+    drawHeadline(ctx, width / 2, height / 2, text.headline, width, palette, fontStack);
   }
 
   if (text.blurb.trim()) {
-    drawBlurb(ctx, gridX + gridW - width * 0.012, gridY + gridH - width * 0.012, text.blurb, width, palette);
+    drawBlurb(ctx, gridX + gridW - width * 0.012, gridY + gridH - width * 0.012, text.blurb, width, palette, fontStack);
   }
 }

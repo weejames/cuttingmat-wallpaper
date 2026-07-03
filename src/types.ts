@@ -14,6 +14,7 @@ export interface MatConfig {
   width: number;
   height: number;
   baseColor: string;
+  fontStack: string;
   text: MatText;
 }
 

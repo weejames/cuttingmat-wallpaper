@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { MatPreview } from "./MatPreview";
 import { exportMatAsPng } from "./export";
+import { CUSTOM_GOOGLE_FONT, googleFontStack, loadGoogleFont, SYSTEM_FONTS } from "./fonts";
 import { DEFAULT_TEXT, RESOLUTION_PRESETS } from "./types";
 import type { MatConfig } from "./types";
 
@@ -18,24 +19,48 @@ export default function App() {
   const [sideLabel, setSideLabel] = useState(DEFAULT_TEXT.sideLabel);
   const [blurb, setBlurb] = useState(DEFAULT_TEXT.blurb);
 
+  const [fontChoice, setFontChoice] = useState(SYSTEM_FONTS[0].family);
+  const [googleFontName, setGoogleFontName] = useState("");
+  const [googleFontInput, setGoogleFontInput] = useState("");
+  const [googleFontStatus, setGoogleFontStatus] = useState<"idle" | "loading" | "error">("idle");
+
   const isCustom = presetLabel === CUSTOM_PRESET;
   const preset = RESOLUTION_PRESETS.find((p) => p.label === presetLabel);
   const width = isCustom ? customWidth : (preset?.width ?? 1920);
   const height = isCustom ? customHeight : (preset?.height ?? 1080);
+
+  const isGoogleFont = fontChoice === CUSTOM_GOOGLE_FONT;
+  const fontStack = isGoogleFont
+    ? (googleFontName ? googleFontStack(googleFontName) : SYSTEM_FONTS[0].stack)
+    : (SYSTEM_FONTS.find((f) => f.family === fontChoice)?.stack ?? SYSTEM_FONTS[0].stack);
 
   const config: MatConfig = useMemo(
     () => ({
       width,
       height,
       baseColor,
+      fontStack,
       text: {
         headline: showHeadline ? headline : "",
         sideLabel: showSideLabel ? sideLabel : "",
         blurb: showBlurb ? blurb : "",
       },
     }),
-    [width, height, baseColor, showHeadline, headline, showSideLabel, sideLabel, showBlurb, blurb],
+    [width, height, baseColor, fontStack, showHeadline, headline, showSideLabel, sideLabel, showBlurb, blurb],
   );
+
+  const handleLoadGoogleFont = async () => {
+    const name = googleFontInput.trim();
+    if (!name) return;
+    setGoogleFontStatus("loading");
+    try {
+      await loadGoogleFont(name);
+      setGoogleFontName(name);
+      setGoogleFontStatus("idle");
+    } catch {
+      setGoogleFontStatus("error");
+    }
+  };
 
   const handleExport = () => {
     const safeLabel = config.text.headline.trim()
@@ -94,6 +119,47 @@ export default function App() {
             <span>Mat color</span>
             <input type="color" value={baseColor} onChange={(e) => setBaseColor(e.target.value)} />
           </label>
+        </section>
+
+        <section>
+          <h2>Font</h2>
+          <label className="field">
+            <span>Typeface</span>
+            <select value={fontChoice} onChange={(e) => setFontChoice(e.target.value)}>
+              {SYSTEM_FONTS.map((f) => (
+                <option key={f.family} value={f.family}>
+                  {f.label}
+                </option>
+              ))}
+              <option value={CUSTOM_GOOGLE_FONT}>Google Font…</option>
+            </select>
+          </label>
+          {isGoogleFont && (
+            <div className="field-row">
+              <input
+                className="field-input"
+                style={{ marginBottom: 0 }}
+                type="text"
+                value={googleFontInput}
+                onChange={(e) => setGoogleFontInput(e.target.value)}
+                placeholder="e.g. Playfair Display"
+              />
+              <button
+                type="button"
+                className="load-font-btn"
+                onClick={handleLoadGoogleFont}
+                disabled={googleFontStatus === "loading" || !googleFontInput.trim()}
+              >
+                {googleFontStatus === "loading" ? "Loading…" : "Load"}
+              </button>
+            </div>
+          )}
+          {isGoogleFont && googleFontStatus === "error" && (
+            <p className="field-error">Couldn't find that font on Google Fonts.</p>
+          )}
+          {isGoogleFont && googleFontName && googleFontStatus !== "loading" && (
+            <p className="field-hint">Using "{googleFontName}".</p>
+          )}
         </section>
 
         <section>

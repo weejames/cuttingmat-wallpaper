@@ -117,6 +117,44 @@ body {
   resize: vertical;
 }
 
+.field-row .field-input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.load-font-btn {
+  flex-shrink: 0;
+  background: #2f9e6e;
+  color: #08110d;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.load-font-btn:hover:not(:disabled) {
+  background: #3ab47f;
+}
+
+.load-font-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.field-error {
+  color: #e08585;
+  font-size: 12px;
+  margin: -6px 0 12px;
+}
+
+.field-hint {
+  color: #9aa0a8;
+  font-size: 12px;
+  margin: -6px 0 12px;
+}
+
 .export-btn {
   margin-top: auto;
   background: #2f9e6e;
