@@ -1,0 +1,151 @@
+:root {
+  color-scheme: dark;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #16181c;
+  color: #e8eaed;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  min-height: 100vh;
+}
+
+.panel {
+  padding: 24px;
+  background: #1c1f24;
+  border-right: 1px solid #2a2e35;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel h1 {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.panel h2 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9aa0a8;
+  margin: 0 0 10px;
+}
+
+.panel section {
+  border-top: 1px solid #2a2e35;
+  padding-top: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #c4c8ce;
+  margin-bottom: 10px;
+}
+
+.field-row {
+  display: flex;
+  gap: 10px;
+}
+
+.field-row .field {
+  flex: 1;
+}
+
+.field select,
+.field input[type="number"] {
+  background: #26292f;
+  border: 1px solid #383c44;
+  border-radius: 6px;
+  color: #e8eaed;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.field-color {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.field-color input[type="color"] {
+  width: 48px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #383c44;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.field-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+.field-input {
+  width: 100%;
+  background: #26292f;
+  border: 1px solid #383c44;
+  border-radius: 6px;
+  color: #e8eaed;
+  padding: 8px 10px;
+  font-size: 13px;
+  margin-bottom: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.export-btn {
+  margin-top: auto;
+  background: #2f9e6e;
+  color: #08110d;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.export-btn:hover {
+  background: #3ab47f;
+}
+
+.preview-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  overflow: auto;
+}
+
+.preview-frame {
+  max-width: 100%;
+  max-height: 100%;
+  width: min(100%, calc((100vh - 64px) * 16 / 9));
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  overflow: hidden;
+}
