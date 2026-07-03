@@ -72,6 +72,21 @@ export interface MatConfig {
   calendar: CalendarConfig;
 }
 
+export interface ColorPreset {
+  label: string;
+  value: string;
+}
+
+export const COLOR_PRESETS: ColorPreset[] = [
+  { label: "Cutting Mat Green", value: "#0f7a5c" },
+  { label: "Copper", value: "#8a5a2c" },
+  { label: "Slate Blue", value: "#2d4a6b" },
+  { label: "Charcoal", value: "#2b2f33" },
+  { label: "Dusty Rose", value: "#a04a5c" },
+  { label: "Plum", value: "#5b3a6b" },
+  { label: "Mustard", value: "#a67c1e" },
+];
+
 export const DEFAULT_TEXT: MatText = {
   headline: "Stay Focused.",
   sideLabel: "CUTTING MAT — STAY FOCUSED — 2026",

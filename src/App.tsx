@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { MatPreview } from "./MatPreview";
 import { exportMatAsPng } from "./export";
 import { CUSTOM_GOOGLE_FONT, googleFontStack, loadGoogleFont, SYSTEM_FONTS } from "./fonts";
-import { CORNER_OPTIONS, DEFAULT_TEXT, GRADIENT_OPTIONS, PATTERN_OPTIONS, RESOLUTION_PRESETS } from "./types";
+import { COLOR_PRESETS, CORNER_OPTIONS, DEFAULT_TEXT, GRADIENT_OPTIONS, PATTERN_OPTIONS, RESOLUTION_PRESETS } from "./types";
 import type { CalendarCorner, MatConfig, MatGradient, MatPattern } from "./types";
 
 const CUSTOM_PRESET = "custom";
@@ -189,6 +189,19 @@ export default function App() {
             <span>Mat color</span>
             <input type="color" value={baseColor} onChange={(e) => setBaseColor(e.target.value)} />
           </label>
+          <div className="swatch-row">
+            {COLOR_PRESETS.map((preset) => (
+              <button
+                key={preset.value}
+                type="button"
+                className={`swatch${baseColor.toLowerCase() === preset.value ? " swatch-active" : ""}`}
+                style={{ backgroundColor: preset.value }}
+                title={preset.label}
+                aria-label={preset.label}
+                onClick={() => setBaseColor(preset.value)}
+              />
+            ))}
+          </div>
         </section>
 
         <section>

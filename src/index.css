@@ -95,6 +95,31 @@ body {
   cursor: pointer;
 }
 
+.swatch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px #383c44;
+}
+
+.swatch:hover {
+  box-shadow: 0 0 0 1px #5a5f68;
+}
+
+.swatch-active {
+  border-color: #e8eaed;
+}
+
 .field-toggle {
   display: flex;
   align-items: center;
