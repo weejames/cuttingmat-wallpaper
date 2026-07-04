@@ -40,7 +40,7 @@ export default function App() {
   const [sideLabel, setSideLabel] = useState(DEFAULT_TEXT.sideLabel);
   const [blurb, setBlurb] = useState(DEFAULT_TEXT.blurb);
 
-  const [fontChoice, setFontChoice] = useState(SYSTEM_FONTS[0].family);
+  const [fontChoice, setFontChoice] = useState("Helvetica");
   const [googleFontName, setGoogleFontName] = useState("");
   const [googleFontInput, setGoogleFontInput] = useState("");
   const [googleFontStatus, setGoogleFontStatus] = useState<"idle" | "loading" | "error">("idle");

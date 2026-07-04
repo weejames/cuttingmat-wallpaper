@@ -88,10 +88,9 @@ export const COLOR_PRESETS: ColorPreset[] = [
 ];
 
 export const DEFAULT_TEXT: MatText = {
-  headline: "Stay Focused.",
-  sideLabel: "CUTTING MAT — STAY FOCUSED — 2026",
-  blurb:
-    "Don't let distractions dilute your potential. Instead, direct your attention toward what truly matters, silence the noise that surrounds you, pursue your priorities with intention, and watch clarity transform into extraordinary results.",
+  headline: "Focus",
+  sideLabel: "Focus Mat",
+  blurb: "“The successful warrior is the average man, with laser-like focus.” — Bruce Lee",
 };
 
 export const RESOLUTION_PRESETS: Resolution[] = [
