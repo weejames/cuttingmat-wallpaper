@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MatPreview } from "./MatPreview";
 import { exportMatAsPng } from "./export";
 import { CUSTOM_GOOGLE_FONT, googleFontStack, loadGoogleFont, SYSTEM_FONTS } from "./fonts";
+import { loadPersistedState, savePersistedState } from "./storage";
 import { COLOR_PRESETS, CORNER_OPTIONS, DEFAULT_TEXT, GRADIENT_OPTIONS, PATTERN_OPTIONS, RESOLUTION_PRESETS } from "./types";
 import type { CalendarCorner, MatConfig, MatGradient, MatPattern } from "./types";
 
@@ -23,26 +24,30 @@ const MONTH_NAMES = [
 
 export default function App() {
   const now = useMemo(() => new Date(), []);
-  const [presetLabel, setPresetLabel] = useState(RESOLUTION_PRESETS[0].label);
-  const [customWidth, setCustomWidth] = useState(1920);
-  const [customHeight, setCustomHeight] = useState(1080);
-  const [pattern, setPattern] = useState<MatPattern>("classic");
-  const [gradient, setGradient] = useState<MatGradient>("diagonal-sheen");
-  const [baseColor, setBaseColor] = useState("#0f7a5c");
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(now.getMonth());
-  const [calendarYear, setCalendarYear] = useState(now.getFullYear());
-  const [calendarCorner, setCalendarCorner] = useState<CalendarCorner>("bottom-left");
-  const [showHeadline, setShowHeadline] = useState(true);
-  const [showSideLabel, setShowSideLabel] = useState(true);
-  const [showBlurb, setShowBlurb] = useState(true);
-  const [headline, setHeadline] = useState(DEFAULT_TEXT.headline);
-  const [sideLabel, setSideLabel] = useState(DEFAULT_TEXT.sideLabel);
-  const [blurb, setBlurb] = useState(DEFAULT_TEXT.blurb);
+  const persisted = useMemo(() => loadPersistedState(), []);
 
-  const [fontChoice, setFontChoice] = useState("Helvetica");
-  const [googleFontName, setGoogleFontName] = useState("");
-  const [googleFontInput, setGoogleFontInput] = useState("");
+  const [presetLabel, setPresetLabel] = useState(persisted?.presetLabel ?? RESOLUTION_PRESETS[0].label);
+  const [customWidth, setCustomWidth] = useState(persisted?.customWidth ?? 1920);
+  const [customHeight, setCustomHeight] = useState(persisted?.customHeight ?? 1080);
+  const [pattern, setPattern] = useState<MatPattern>((persisted?.pattern as MatPattern) ?? "classic");
+  const [gradient, setGradient] = useState<MatGradient>((persisted?.gradient as MatGradient) ?? "diagonal-sheen");
+  const [baseColor, setBaseColor] = useState(persisted?.baseColor ?? "#0f7a5c");
+  const [showCalendar, setShowCalendar] = useState(persisted?.showCalendar ?? false);
+  const [calendarMonth, setCalendarMonth] = useState(persisted?.calendarMonth ?? now.getMonth());
+  const [calendarYear, setCalendarYear] = useState(persisted?.calendarYear ?? now.getFullYear());
+  const [calendarCorner, setCalendarCorner] = useState<CalendarCorner>(
+    (persisted?.calendarCorner as CalendarCorner) ?? "bottom-left",
+  );
+  const [showHeadline, setShowHeadline] = useState(persisted?.showHeadline ?? true);
+  const [showSideLabel, setShowSideLabel] = useState(persisted?.showSideLabel ?? true);
+  const [showBlurb, setShowBlurb] = useState(persisted?.showBlurb ?? true);
+  const [headline, setHeadline] = useState(persisted?.headline ?? DEFAULT_TEXT.headline);
+  const [sideLabel, setSideLabel] = useState(persisted?.sideLabel ?? DEFAULT_TEXT.sideLabel);
+  const [blurb, setBlurb] = useState(persisted?.blurb ?? DEFAULT_TEXT.blurb);
+
+  const [fontChoice, setFontChoice] = useState(persisted?.fontChoice ?? "Helvetica");
+  const [googleFontName, setGoogleFontName] = useState(persisted?.googleFontName ?? "");
+  const [googleFontInput, setGoogleFontInput] = useState(persisted?.googleFontInput ?? "");
   const [googleFontStatus, setGoogleFontStatus] = useState<"idle" | "loading" | "error">("idle");
 
   const isCustom = presetLabel === CUSTOM_PRESET;
@@ -107,6 +112,57 @@ export default function App() {
       setGoogleFontStatus("error");
     }
   };
+
+  useEffect(() => {
+    if (fontChoice === CUSTOM_GOOGLE_FONT && googleFontName) {
+      loadGoogleFont(googleFontName).catch(() => setGoogleFontStatus("error"));
+    }
+    // Only re-load the persisted Google Font once, on mount.
+  }, []);
+
+  useEffect(() => {
+    savePersistedState({
+      presetLabel,
+      customWidth,
+      customHeight,
+      pattern,
+      gradient,
+      baseColor,
+      showCalendar,
+      calendarMonth,
+      calendarYear,
+      calendarCorner,
+      showHeadline,
+      showSideLabel,
+      showBlurb,
+      headline,
+      sideLabel,
+      blurb,
+      fontChoice,
+      googleFontName,
+      googleFontInput,
+    });
+  }, [
+    presetLabel,
+    customWidth,
+    customHeight,
+    pattern,
+    gradient,
+    baseColor,
+    showCalendar,
+    calendarMonth,
+    calendarYear,
+    calendarCorner,
+    showHeadline,
+    showSideLabel,
+    showBlurb,
+    headline,
+    sideLabel,
+    blurb,
+    fontChoice,
+    googleFontName,
+    googleFontInput,
+  ]);
 
   const handleExport = () => {
     const safeLabel = config.text.headline.trim()
