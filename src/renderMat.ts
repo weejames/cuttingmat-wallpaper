@@ -518,7 +518,7 @@ function drawAxisNumbers(
   const rowCount = Math.round(h / majorStepY);
   ctx.textBaseline = "middle";
   for (let i = 0; i <= rowCount; i++) {
-    const gy = y + i * majorStepY;
+    const gy = y + h - i * majorStepY;
     ctx.textAlign = "right";
     ctx.fillText(String(i), x - offset, gy);
     ctx.textAlign = "left";
