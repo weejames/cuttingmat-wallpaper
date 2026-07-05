@@ -6,6 +6,7 @@ export interface PersistedState {
   customHeight: number;
   pattern: string;
   gradient: string;
+  showAxisNumbers: boolean;
   baseColor: string;
   showCalendar: boolean;
   calendarMonth: number;

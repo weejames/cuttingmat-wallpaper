@@ -31,6 +31,7 @@ export default function App() {
   const [customHeight, setCustomHeight] = useState(persisted?.customHeight ?? 1080);
   const [pattern, setPattern] = useState<MatPattern>((persisted?.pattern as MatPattern) ?? "classic");
   const [gradient, setGradient] = useState<MatGradient>((persisted?.gradient as MatGradient) ?? "diagonal-sheen");
+  const [showAxisNumbers, setShowAxisNumbers] = useState(persisted?.showAxisNumbers ?? false);
   const [baseColor, setBaseColor] = useState(persisted?.baseColor ?? "#0f7a5c");
   const [showCalendar, setShowCalendar] = useState(persisted?.showCalendar ?? false);
   const [calendarMonth, setCalendarMonth] = useState(persisted?.calendarMonth ?? now.getMonth());
@@ -68,6 +69,7 @@ export default function App() {
       fontStack,
       pattern,
       gradient,
+      showAxisNumbers,
       text: {
         headline: showHeadline ? headline : "",
         sideLabel: showSideLabel ? sideLabel : "",
@@ -87,6 +89,7 @@ export default function App() {
       fontStack,
       pattern,
       gradient,
+      showAxisNumbers,
       showHeadline,
       headline,
       showSideLabel,
@@ -127,6 +130,7 @@ export default function App() {
       customHeight,
       pattern,
       gradient,
+      showAxisNumbers,
       baseColor,
       showCalendar,
       calendarMonth,
@@ -148,6 +152,7 @@ export default function App() {
     customHeight,
     pattern,
     gradient,
+    showAxisNumbers,
     baseColor,
     showCalendar,
     calendarMonth,
@@ -236,6 +241,14 @@ export default function App() {
                 </option>
               ))}
             </select>
+          </label>
+          <label className="field-toggle">
+            <input
+              type="checkbox"
+              checked={showAxisNumbers}
+              onChange={(e) => setShowAxisNumbers(e.target.checked)}
+            />
+            <span>Axis numbers</span>
           </label>
         </section>
 

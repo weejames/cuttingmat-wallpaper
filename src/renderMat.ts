@@ -487,6 +487,47 @@ function drawBorder(
   ctx.restore();
 }
 
+function drawAxisNumbers(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  matWidth: number,
+  palette: Palette,
+  fontStack: string,
+) {
+  const { majorStepX, majorStepY } = gridSteps(w, h);
+  const fontSize = Math.round(matWidth * 0.009);
+  const offset = matWidth * 0.014;
+
+  ctx.save();
+  ctx.font = `${fontSize}px ${fontStack}`;
+  ctx.fillStyle = palette.textPrimary;
+
+  const colCount = Math.round(w / majorStepX);
+  ctx.textAlign = "center";
+  for (let i = 0; i <= colCount; i++) {
+    const gx = x + i * majorStepX;
+    ctx.textBaseline = "bottom";
+    ctx.fillText(String(i), gx, y - offset);
+    ctx.textBaseline = "top";
+    ctx.fillText(String(i), gx, y + h + offset);
+  }
+
+  const rowCount = Math.round(h / majorStepY);
+  ctx.textBaseline = "middle";
+  for (let i = 0; i <= rowCount; i++) {
+    const gy = y + i * majorStepY;
+    ctx.textAlign = "right";
+    ctx.fillText(String(i), x - offset, gy);
+    ctx.textAlign = "left";
+    ctx.fillText(String(i), x + w + offset, gy);
+  }
+
+  ctx.restore();
+}
+
 function drawHeadline(
   ctx: CanvasRenderingContext2D,
   cx: number,
@@ -694,7 +735,7 @@ function drawCalendar(
 }
 
 export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
-  const { width, height, baseColor, fontStack, pattern, gradient, text, calendar } = config;
+  const { width, height, baseColor, fontStack, pattern, gradient, showAxisNumbers, text, calendar } = config;
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
@@ -704,7 +745,8 @@ export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
 
   drawBackground(ctx, width, height, palette, gradient);
 
-  const margin = Math.round(Math.min(width, height) * MARGIN_RATIO);
+  const marginRatio = showAxisNumbers ? MARGIN_RATIO * 2 : MARGIN_RATIO;
+  const margin = Math.round(Math.min(width, height) * marginRatio);
   const gridX = margin;
   const gridY = margin;
   const gridW = width - margin * 2;
@@ -712,6 +754,10 @@ export function renderMat(canvas: HTMLCanvasElement, config: MatConfig): void {
 
   drawPattern(pattern, ctx, gridX, gridY, gridW, gridH, palette);
   drawBorder(ctx, gridX, gridY, gridW, gridH, palette);
+
+  if (showAxisNumbers) {
+    drawAxisNumbers(ctx, gridX, gridY, gridW, gridH, width, palette, fontStack);
+  }
 
   if (text.sideLabel.trim()) {
     drawSideLabel(ctx, gridX, gridY, gridH, text.sideLabel, width, palette, fontStack);

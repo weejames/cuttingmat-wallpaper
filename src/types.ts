@@ -68,6 +68,7 @@ export interface MatConfig {
   fontStack: string;
   pattern: MatPattern;
   gradient: MatGradient;
+  showAxisNumbers: boolean;
   text: MatText;
   calendar: CalendarConfig;
 }
